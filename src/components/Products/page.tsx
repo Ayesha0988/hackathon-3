@@ -5,8 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 
 const sanity = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
-  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET,
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "",
+  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || "",
   apiVersion: "2021-08-31",
   useCdn: true,
 });
@@ -18,11 +18,6 @@ export interface Product {
   description: string;
   discountPercentage: number;
   imageUrl: string;
-  productImage: {
-    asset: {
-      _ref: string;
-    };
-  };
   tags: string[];
   slug: {
     _type: "slug";
@@ -34,11 +29,11 @@ const ProductCards: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<Product[]>([]);
 
-  const fetchProducts = async () => {
+  const fetchProducts = async (): Promise<void> => {
     try {
       const query = `*[_type == "product"] {
         _id,
-        productName, // Changed from title to productName
+        productName,
         price,
         description,
         discountPercentage,
@@ -46,28 +41,28 @@ const ProductCards: React.FC = () => {
         tags,
         slug
       }`;
-    
-      const data = await sanity.fetch(query);
-      console.log("Fetched Products Data:", data); 
+
+      const data: Product[] = await sanity.fetch<Product[]>(query);
       setProducts(data);
-    } catch (error: any) {
-      console.error("Failed to Fetch Products:", error.message || error);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error("Failed to fetch products:", error.message);
+      } else {
+        console.error("An unknown error occurred.");
+      }
     }
-  
   };
 
-
-
-  const addToCart = (product: Product) => {
+  const addToCart = (product: Product): void => {
     setCart((prevCart) => [...prevCart, product]);
-    alert(`${product.productName} has been added to your cart!`); 
+    alert(`${product.productName} has been added to your cart!`);
   };
 
-  function truncateDescription(description: string): string {
+  const truncateDescription = (description: string): string => {
     return description.length > 100
-      ? description.substring(0, 100) + "..."
+      ? `${description.substring(0, 100)}...`
       : description;
-  }
+  };
 
   useEffect(() => {
     fetchProducts();
@@ -76,7 +71,7 @@ const ProductCards: React.FC = () => {
   return (
     <div className="p-4">
       <h2 className="text-center text-slate-800 mt-4 mb-2">
-        Products From API's Data
+        Products From API&apos;s Data
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {products.map((product) => (
@@ -85,45 +80,56 @@ const ProductCards: React.FC = () => {
             className="bg-white shadow rounded-lg p-4 hover:shadow-lg transition-shadow duration-300"
           >
             <Link href={`/product/${product.slug.current}`}>
-              <Image
-                src={product.imageUrl}
-                alt={product.productName} 
-                width={300}
-                height={300}
-                className="w-full h-48 object-cover rounded-md"
-              />
-              <div className="mt-4">
-                <h2 className="text-lg font-semibold">{product.productName}</h2> 
-                <p className="text-slate-800 mt-2 text-sm">
-                  {truncateDescription(product.description)}
-                </p>
-                <div className="flex justify-between items-center mt-4">
-                  <div>
-                    <p className="text-slate-600 font-bold"> ${product.price}</p>
-                    {product.discountPercentage > 0 && (
-                      <p className="text-sm text-green-600">
-                        {product.discountPercentage} % OFF
+              <div>
+                <Image
+                  src={product.imageUrl || "/placeholder-image.png"} // Fallback for missing imageUrl
+                  alt={product.productName || "Product Image"}
+                  width={300}
+                  height={300}
+                  className="w-full h-48 object-cover rounded-md"
+                />
+                <div className="mt-4">
+                  <h2 className="text-lg font-semibold">
+                    {product.productName}
+                  </h2>
+                  <p className="text-slate-800 mt-2 text-sm">
+                    {truncateDescription(product.description)}
+                  </p>
+                  <div className="flex justify-between items-center mt-4">
+                    <div>
+                      <p className="text-slate-600 font-bold">
+                        ${product.price.toFixed(2)}
                       </p>
+                      {product.discountPercentage > 0 && (
+                        <p className="text-sm text-green-600">
+                          {product.discountPercentage}% OFF
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {Array.isArray(product.tags) && product.tags.length > 0 ? (
+                      product.tags.map((tag, index) => (
+                        <span
+                          key={index}
+                          className="text-xs bg-slate-400 text-black px-2 py-1"
+                        >
+                          {tag}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-xs text-gray-500">
+                        No tags available
+                      </span>
                     )}
                   </div>
+                  <button
+                    className="mt-4 w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
+                    onClick={() => addToCart(product)}
+                  >
+                    Add To Cart
+                  </button>
                 </div>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {Array.isArray(product.tags) && product.tags.map((tag, index) => (
-                    <span
-                      key={index}
-                      className="text-xs bg-slate-400 text-black  px-2 py-1"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-
-                <button
-                  className="mt-4 w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
-                  onClick={() => addToCart(product)}
-                >
-                  Add To Cart
-                </button>
               </div>
             </Link>
           </div>
@@ -140,25 +146,26 @@ const ProductCards: React.FC = () => {
                 className="flex justify-between items-center bg-white shadow-sm p-4 rounded-md"
               >
                 <div>
-                  <p className="font-medium text-slate-900">{item.productName}</p> {/* Changed from title to productName */}
+                  <p className="font-medium text-slate-900">
+                    {item.productName}
+                  </p>
                   <p className="text-sm text-blue-600">
                     ${item.price.toFixed(2)}
                   </p>
-
-                  <Image
-                    src={item.imageUrl}
-                    alt={item.productName} // Changed from title to productName
-                    width={50}
-                    height={50}
-                    className="rounded-md"
-                  />
                 </div>
+                <Image
+                  src={item.imageUrl || "/placeholder-image.png"} // Fallback for missing imageUrl
+                  alt={item.productName || "Cart Image"}
+                  width={50}
+                  height={50}
+                  className="rounded-md"
+                />
               </li>
             ))}
           </ul>
         ) : (
           <p className="text-black text-center">
-            Your Cart Is Empty Please Add Products
+            Your Cart Is Empty. Please Add Products.
           </p>
         )}
       </div>
