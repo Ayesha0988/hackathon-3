@@ -8,4 +8,4 @@ declare module 'next-sanity' {
 
   export function createClient(config: SanityClientConfig): SanityClient; // Specify the config type and return type
   export const groq: (query: TemplateStringsArray) => Promise<unknown>; // Define groq to accept template literals and return a promise with a more generic type
-}
+} 
