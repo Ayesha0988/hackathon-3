@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import React from 'react';
 
 const Cart = () => {
@@ -9,14 +10,16 @@ const Cart = () => {
         <div className="space-y-6">
           {/* Item 1 */}
           <div className="flex items-center bg-white shadow-md p-4 rounded-lg">
-            <img
+            <Image
               src="/Techknit.png"
               alt="TechKnit Ultra Shirt"
-              className="w-24 h-24 object-cover rounded-md"
+              width={96}
+              height={96}
+              className="object-cover rounded-md"
             />
             <div className="ml-4">
               <h3 className="text-lg font-bold">Nike Dri-FIT ADV TechKnit Ultra</h3>
-              <p>Men's Short-Sleeve Running Top</p>
+              <p>Men&#39;s Short-Sleeve Running Top</p>
               <p>
                 Ashen Slate/Cobalt Bliss <span className="text-gray-600">| Size: L | Quantity: 1</span>
               </p>
@@ -26,14 +29,16 @@ const Cart = () => {
 
           {/* Item 2 */}
           <div className="flex items-center bg-white shadow-md p-4 rounded-lg">
-            <img
+            <Image
               src="/p1.png"
               alt="Nike Air Max 97 SE"
-              className="w-24 h-24 object-cover rounded-md"
+              width={96}
+              height={96}
+              className="object-cover rounded-md"
             />
             <div className="ml-4">
               <h3 className="text-lg font-bold">Nike Air Max 97 SE</h3>
-              <p>Men's Shoes</p>
+              <p>Men&#39;s Shoes</p>
               <p>
                 Flat Pewter/Light Bone/Black/White <span className="text-gray-600">| Size: 8 | Quantity: 1</span>
               </p>
