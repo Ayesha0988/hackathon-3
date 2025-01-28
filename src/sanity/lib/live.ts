@@ -6,7 +6,7 @@ import { createClient } from '@sanity/client';
 const client = createClient({
   projectId: '1h7orxsv',
   dataset: 'production',
-  apiVersion: '2021-10-21', 
+  apiVersion: '2023-01-01', 
   token: process.env.SANITY_TOKEN,  // Fetch from env variable
   useCdn: false,
 });
